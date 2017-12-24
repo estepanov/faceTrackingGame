@@ -1,5 +1,10 @@
+body {
+  background: black;
+}
+
 .flex-container {
-  height: 100%;
+  height: 100vh;
+  width: 100vw;
   padding: 0;
   margin: 0;
   display: -webkit-box;
@@ -7,19 +12,47 @@
   display: -ms-flexbox;
   display: -webkit-flex;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+}
+
+.row {
+  color: white;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
+.flex-item {
+  color: white;
+  text-align: center;
+}
+
+.h1 {
+  font-weight: bold;
+  font-size: 3em;
+}
+.h2 {
+  font-weight: bold;
+  font-size: 2em;
 }
 
 .videoCanvas {
-  z-index: -10;
-  width: 960px;
-  height: 720px;
-  overflow: hidden;
-  -webkit-box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  -ms-box-sizing: border-box;
-  box-sizing: border-box;
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  border: 5px solid white;
+  text-align: left;
+  width: 320px;
+  height: 240px;
+  /* overflow: hidden; */
+}
+
+.header {
+  background-color: white;
+  color: black;
+  padding: 2em;
 }
 
 .ball {
