@@ -8,7 +8,13 @@ function centerBall(leftCorner, faceWidth, ballWidth) {
 }
 
 function updateScore(scoreDiv, newScore) {
-  scoreDiv.innerHTML = newScore
+  console.log('old score:', scoreDiv.innerHTML, 'new score to add:', newScore)
+  scoreDiv.innerHTML = parseInt(scoreDiv.innerHTML) + newScore
+}
+
+function checkHitDetection(player, opponents, scoreDiv) {
+  opponents.forEach(opponent => {})
+  return newOpponents
 }
 
 function makeOpponent(windowWidth, windowHeight) {
