@@ -9,9 +9,7 @@
 
   <script src="vendor/trackingjs/build/tracking-min.js"></script>
   <script src="vendor/trackingjs/build/data/face-min.js"></script>
-  <!-- <script src="vendor/trackingjs/build/data/eye-min.js"></script> -->
-  <!-- <script src="vendor/trackingjs/build/data/mouth-min.js"></script> -->
-  <script src="vendor/dat.gui/build/dat.gui.min.js"></script>
+  <!-- <script src="vendor/dat.gui/build/dat.gui.min.js"></script> -->
   <script src="vendor/trackingjs/assets/stats.min.js"></script>
   <script src="logic.js"></script>
 
@@ -21,11 +19,6 @@
       margin: 0px;
       padding: 0px;
       position: absolute;
-      /* z-index: 100; */
-    }
-
-    video {
-      /* z-index: 99; */
     }
   </style>
 </head>
@@ -33,70 +26,110 @@
 <body>
   <div class="flex-container">
     <div class="row header" id="header">
-      <h1>Face Detection Game</h1>
+      <h1>Evan's Face Detection Game</h1>
+      <div id="scoreBoard">Score
+        <div id="score">0</div>
+      </div>
+
     </div>
-    <div id="playZone" class="row">
-      <canvas id="board" width="100%" height="100%"></canvas>
-      <div class="videoCanvas">
-        <video id="video" width="320" height="240" preload autoplay loop muted></video>
-        <canvas id="canvas" width="320" height="240"></canvas>
+    <div class="row">
+      <div id="playZone">
+        <canvas id="board" width="100%" height="100%"></canvas>
+        <canvas id="opponentBoard" width="100%" height="100%"></canvas>
+        <div class="videoCanvas">
+          <video id="video" width="320" height="240" preload autoplay loop muted></video>
+          <canvas id="canvas" width="320" height="240"></canvas>
+        </div>
+        <div id="outOfBounds">cant find your face ...</div>
       </div>
     </div>
   </div>
 
   <script>
+    var boardWidth, boardHeight, score, opponents
+    var header = document.getElementById('header');
+    var playZone = document.getElementById('playZone');
+    var outOfBounds = document.getElementById('outOfBounds');
+    var video = document.getElementById('video');
+    var canvas = document.getElementById('canvas');
+    var boardCanvas = document.getElementById('board');
+    var opponentCanvas = document.getElementById('opponentBoard');
+    var score = document.getElementById('score');
 
-    window.onload = function () {
-      const PLAYER_SCALE = 0.5;
-      const MOVEMENT_SENSITIVITY = 1.3;
-      var header = document.getElementById('header');
-
-      var video = document.getElementById('video');
-      var canvas = document.getElementById('canvas');
-      var context = canvas.getContext('2d');
-      var boardCanvas = document.getElementById('board');
-      var boardContext = boardCanvas.getContext('2d');
+    function resizeElements() {
+      opponentCanvas.height = window.innerHeight - header.clientHeight;
+      opponentCanvas.width = window.innerWidth;
 
       boardCanvas.height = window.innerHeight - header.clientHeight;
       boardCanvas.width = window.innerWidth;
 
-      var boardWidth = boardCanvas.offsetWidth
-      var boardHeight = boardCanvas.offsetHeight
+      boardWidth = boardCanvas.offsetWidth
+      boardHeight = boardCanvas.offsetHeight
+      opponents = makeOpponent(boardWidth, boardHeight)
+      console.log('opponents -->', opponents)
+    }
+
+    window.addEventListener('resize', resizeElements);
+
+    window.onload = function () {
+      const PLAYER_SCALE = 0.5;
+      const MOVEMENT_SENSITIVITY = 1.4;
+
+      console.log('playzone height', playZone.offsetHeight, 'width', playZone.offsetWidth)
+
+      var context = canvas.getContext('2d');
+      var boardContext = boardCanvas.getContext('2d');
+      var opponentBoardContext = opponentCanvas.getContext('2d');
+
+
+      resizeElements()
+
+      updateScore(score, 100)
+
+      console.log('opponent canvas width ', opponentCanvas.width, 'opponent canvas height', opponentCanvas.height)
+      opponentBoardContext.clearRect(0, 0, opponentCanvas.width, opponentCanvas.height);
+      drawOpponents(opponentBoardContext, opponents)
 
       console.log('height', boardCanvas.height, 'width', boardCanvas.width)
       console.log('header', header)
       console.log('height', header.clientHeight, 'width', header.clientWidth)
 
       var tracker = new tracking.ObjectTracker(['face']);
+
       tracker.setInitialScale(4);
       tracker.setStepSize(2);
       tracker.setEdgesDensity(0.1);
 
       tracking.track('#video', tracker, { camera: true });
 
+      // event listener for face tracker
       tracker.on('track', function (event) {
+        outOfBounds.style.visibility = "visible";
         context.clearRect(0, 0, canvas.width, canvas.height);
         boardContext.clearRect(0, 0, boardCanvas.width, boardCanvas.height);
 
+        // console.log('event', event, 'event.data', event.data)
+
+        /*
+        event for face found in camera.
+        this updates both the camera view with a box around faces and
+        the game piece.
+        */
         event.data.forEach(function (rect) {
+          outOfBounds.style.visibility = "hidden";
+
+          var playerXPosition = (rect.x / 320) * boardWidth * MOVEMENT_SENSITIVITY
+          var playerYPosition = (rect.y / 240) * boardHeight * MOVEMENT_SENSITIVITY
+          var playerHeight = 0.3 * boardHeight * PLAYER_SCALE
+          var playerWidth = 0.3 * boardWidth * PLAYER_SCALE
+
+          // create players piece
+          boardContext.fillRect(playerXPosition, playerYPosition, playerWidth, playerHeight);
+          boardContext.fillStyle = 'green';
+
+          // for webcam video to show face outline
           context.strokeStyle = '#a64ceb';
           context.strokeRect(rect.x, rect.y, rect.width, rect.height);
-          boardContext.strokeRect(
-            (rect.x / 320) * boardWidth * MOVEMENT_SENSITIVITY,
-            (rect.y / 240) * boardHeight * MOVEMENT_SENSITIVITY,
-            (rect.width / 320) * boardWidth * PLAYER_SCALE,
-            (rect.height / 240) * boardHeight * PLAYER_SCALE
-          );
-          boardContext.strokeStyle = '#fff'
-          // ball size:
-          const ball = {
-            "height": rect.height / 4,
-            "width": rect.width / 4
-          }
-          // space.arc(centerBall(rect.x, rect.width, ball.width), rect.y - ball.width, ball.width, 0, 2 * Math.PI);
-          // space.fillStyle = "red";
-          // space.fill();
-          // context.fillRect(centerBall(rect.x, rect.width, ball.width), rect.y - ball.width, ball.height, ball.width);
           context.font = '11px Helvetica';
           context.fillStyle = "#fff";
           context.fillText('x: ' + rect.x + 'px', rect.x + rect.width + 5, rect.y + 11);
