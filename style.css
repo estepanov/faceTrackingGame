@@ -56,6 +56,10 @@ body {
   width: 100%;
 }
 
+.gameHelp {
+  padding: 5px;
+}
+
 #outOfBounds {
   visibility: hidden;
   position: absolute;

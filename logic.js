@@ -47,7 +47,7 @@ function makeOpponent(windowWidth, windowHeight) {
   const NORMAL_HEIGHT = 100
   const NORMAL_WIDTH = 100
 
-  for (var i = 0; i < 2; i++) {
+  for (var i = 0; i < 4; i++) {
     opponentsArray.push({
       points: getRandomInt(1, 2),
       height: NORMAL_HEIGHT,
