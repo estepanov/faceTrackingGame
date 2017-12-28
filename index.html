@@ -41,12 +41,16 @@
           <canvas id="canvas" width="320" height="240"></canvas>
         </div>
         <div id="outOfBounds">cant find your face ...</div>
+
+        <div id="gameOver">good job.
+          <br> You </div>
       </div>
     </div>
   </div>
 
   <script>
     var boardWidth, boardHeight, score, opponents
+    var showedMessage = false
     var header = document.getElementById('header');
     var playZone = document.getElementById('playZone');
     var outOfBounds = document.getElementById('outOfBounds');
@@ -55,6 +59,8 @@
     var boardCanvas = document.getElementById('board');
     var opponentCanvas = document.getElementById('opponentBoard');
     var score = document.getElementById('score');
+    var gameOver = document.getElementById('gameOver');
+    var startTime
 
     function resizeElements() {
       opponentCanvas.height = window.innerHeight - header.clientHeight;
@@ -66,6 +72,7 @@
       boardWidth = boardCanvas.offsetWidth
       boardHeight = boardCanvas.offsetHeight
       opponents = makeOpponent(boardWidth, boardHeight)
+      startTime = new Date().getTime();
       console.log('opponents -->', opponents)
     }
 
@@ -83,11 +90,8 @@
 
       resizeElements()
 
-      updateScore(score, 100)
-
       console.log('opponent canvas width ', opponentCanvas.width, 'opponent canvas height', opponentCanvas.height)
-      opponentBoardContext.clearRect(0, 0, opponentCanvas.width, opponentCanvas.height);
-      drawOpponents(opponentBoardContext, opponents)
+
 
       console.log('height', boardCanvas.height, 'width', boardCanvas.width)
       console.log('header', header)
@@ -106,6 +110,7 @@
         outOfBounds.style.visibility = "visible";
         context.clearRect(0, 0, canvas.width, canvas.height);
         boardContext.clearRect(0, 0, boardCanvas.width, boardCanvas.height);
+        opponentBoardContext.clearRect(0, 0, opponentCanvas.width, opponentCanvas.height);
 
         // console.log('event', event, 'event.data', event.data)
 
@@ -117,13 +122,26 @@
         event.data.forEach(function (rect) {
           outOfBounds.style.visibility = "hidden";
 
-          var playerXPosition = (rect.x / 320) * boardWidth * MOVEMENT_SENSITIVITY
-          var playerYPosition = (rect.y / 240) * boardHeight * MOVEMENT_SENSITIVITY
-          var playerHeight = 0.3 * boardHeight * PLAYER_SCALE
-          var playerWidth = 0.3 * boardWidth * PLAYER_SCALE
+          const player = {}
+
+          player.XPosition = (rect.x / 320) * boardWidth * MOVEMENT_SENSITIVITY
+          player.YPosition = (rect.y / 240) * boardHeight * MOVEMENT_SENSITIVITY
+          player.Height = 0.3 * boardHeight * PLAYER_SCALE
+          player.Width = 0.3 * boardWidth * PLAYER_SCALE
+
+          // check hit
+          opponents = checkHitDetection(player, opponents, score)
+          if (!opponents.length) {
+            if (!showedMessage) {
+              showedMessage = true;
+              endGame(gameOver, score, startTime)
+            }
+          }
+
+          drawOpponents(opponentBoardContext, opponents)
 
           // create players piece
-          boardContext.fillRect(playerXPosition, playerYPosition, playerWidth, playerHeight);
+          boardContext.fillRect(player.XPosition, player.YPosition, player.Width, player.Height);
           boardContext.fillStyle = 'green';
 
           // for webcam video to show face outline
